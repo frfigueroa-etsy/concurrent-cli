@@ -1,0 +1,28 @@
+[
+  {
+    "name": "Heavy Load - Wallets",
+    "concurrency": 100,
+    "duration_minutes": 6,
+    "interval_seconds": 120,
+    "mode": "interval",
+    "target_url": "https://openapi.etsy.com/v3/application/listings/active?limit=100&keywords=wallet&sort_on=price&sort_order=desc",
+    "method": "GET",
+    "payload": {},
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  },
+  {
+    "name": "Light Load - General",
+    "concurrency": 50,
+    "duration_minutes": 6,
+    "interval_seconds": 10,
+    "mode": "interval",
+    "target_url": "https://openapi.etsy.com/v3/application/listings/active?limit=100&keywords=wallet&sort_on=price&sort_order=desc",
+    "method": "GET",
+    "payload": {},
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+]
