@@ -4,17 +4,41 @@ import json
 import argparse
 import time
 import uuid
-from collections import Counter
+import csv
 import os
+from collections import Counter
+from datetime import datetime
 from dotenv import load_dotenv
 
 # load env
 load_dotenv()
 
+# Configuration constants
+CSV_FILENAME = "reports/load_test_results.csv"
+
 # 1. CLI Setup
 parser = argparse.ArgumentParser(description="Testing tool for concurrency")
 parser.add_argument("--config", type=str, default="config.json", help="config file route")
 args = parser.parse_args()
+
+def init_csv():
+    """
+    Initializes the CSV file with headers if it doesn't exist.
+    """
+    file_exists = os.path.isfile(CSV_FILENAME)
+    if not file_exists:
+        with open(CSV_FILENAME, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([
+                "Timestamp", 
+                "Scenario Name", 
+                "Batch Number", 
+                "Batch ID", 
+                "Execution Time (s)", 
+                "OK (200)", 
+                "Blocked (429/403)", 
+                "Errors (5xx/Other)"
+            ])
 
 async def send_request(session, url, method, data, headers, request_id):
     """
@@ -35,10 +59,9 @@ async def send_request(session, url, method, data, headers, request_id):
 
 async def run_batch(session, config, base_headers, batch_num, scenario_name):
     """
-    Executes a SINGLE batch of concurrent requests.
+    Executes a SINGLE batch of concurrent requests and logs to CSV.
     """
     batch_id = str(uuid.uuid4())
-    # Log with Scenario Name prefix
     print(f"\n[{scenario_name}] >>> Starting Batch #{batch_num} | Batch ID: {batch_id}")
     
     current_headers = base_headers.copy()
@@ -60,22 +83,44 @@ async def run_batch(session, config, base_headers, batch_num, scenario_name):
     results = await asyncio.gather(*tasks)
     end_batch = time.perf_counter()
     
+    # Metrics calculation
+    total_time = end_batch - start_batch
     status_counts = Counter(r['status'] for r in results)
     blocked = status_counts.get(429, 0) + status_counts.get(403, 0)
     success = status_counts.get(200, 0)
-    errors = status_counts.get(503, 0)
+    errors = status_counts.get(503, 0) + status_counts.get("ERROR", 0)
     
-    print(f"    [{scenario_name}] Batch #{batch_num} Done | Time: {(end_batch - start_batch):.2f}s | OK: {success} | Blocked: {blocked} | Errors: {errors}")
+    # Timestamp for the log
+    current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Console Output
+    print(f"    [{scenario_name}] Batch #{batch_num} Done | Time: {total_time:.2f}s | OK: {success} | Blocked: {blocked} | Errors: {errors}")
+    
+    # Write to CSV
+    try:
+        with open(CSV_FILENAME, mode='a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([
+                current_timestamp,
+                scenario_name,
+                batch_num,
+                batch_id,
+                f"{total_time:.2f}",
+                success,
+                blocked,
+                errors
+            ])
+    except Exception as e:
+        print(f"    [ERROR] Failed to write to CSV: {e}")
+
     return results
 
 async def run_scenario(scenario_config, api_key):
     """
-    Handles the logic (Burst/Interval) for a SINGLE scenario config object.
+    Handles the logic for a SINGLE scenario config object.
     """
-    # Use a default name if not provided
     name = scenario_config.get("name", "Unnamed Scenario")
     
-    # Headers Setup
     headers = scenario_config.get("headers", {})
     headers["x-api-key"] = api_key 
     headers["X-Is-Load-Test"] = "true"
@@ -94,7 +139,6 @@ async def run_scenario(scenario_config, api_key):
     else:
         end_time = time.time()
 
-    # Each scenario gets its own session to be independent
     async with aiohttp.ClientSession() as session:
         batch_counter = 1
         
@@ -109,17 +153,18 @@ async def run_scenario(scenario_config, api_key):
                 print(f"[{name}] Time limit reached. Stopping.")
                 break
             
-            # Wait for next interval
             print(f"[{name}] Sleeping {interval_seconds}s...")
             await asyncio.sleep(interval_seconds)
             batch_counter += 1
 
 async def main():
-    # 1. Load Config (Now expecting a LIST)
+    # 0. Init CSV
+    init_csv()
+
+    # 1. Load Config
     with open(args.config, 'r') as f:
         config_data = json.load(f)
 
-    # Validate if it's a list or a single object (backward compatibility)
     if isinstance(config_data, dict):
         scenarios = [config_data]
     else:
@@ -131,15 +176,13 @@ async def main():
         print("ERROR: ETSY_API_KEY not found in .env file")
         return
 
-    # 3. Launch all scenarios in parallel
-    print(f"Loaded {len(scenarios)} scenarios. Launching parallel execution...\n")
+    # 3. Launch parallel execution
+    print(f"Loaded {len(scenarios)} scenarios. Output file: {CSV_FILENAME}\n")
     
     tasks = []
     for scenario in scenarios:
-        # Create a task for each scenario
         tasks.append(run_scenario(scenario, api_key))
     
-    # Wait for all scenarios to finish
     await asyncio.gather(*tasks)
     print("\n--- All Scenarios Completed ---")
 
