@@ -47,7 +47,6 @@ concurrent-cli/
 
 3. Install Dependencies:
    ```bash
-    # .env
     pip install -r requirements.txt
 
 
@@ -116,7 +115,6 @@ Sends all the specified concurrency amount of request at the same time.
 To run a load test, provide the name of the configuration file (without .json extension) located in the `config/` folder.
 
 ```bash
-    # .env
     python main.py --endpoint getShopReceipts
 ```
 
