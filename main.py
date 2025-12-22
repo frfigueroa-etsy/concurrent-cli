@@ -51,27 +51,11 @@ async def run_batch(session, config, auth_manager, batch_num, scenario_name):
 
     # 2. Prepare Tasks
     tasks = []
-    path_params_file = config.get('pathParams')
-    csv_rows = load_csv_data(path_params_file)
 
-    if csv_rows:
-        print(f"    Target: {len(csv_rows)} rows x {config['concurrency']} requests")
-        req_id = 1
-        for row in csv_rows:
-            url = config['target_url']
-            # Dynamic Replace
-            for key, val in row.items():
-                url = url.replace(f"{{{key}}}", val)
-            
-            # Spawn concurrent tasks for this row
-            for _ in range(config['concurrency']):
-                tasks.append(send_request(session, url, config['method'], config['payload'], base_headers, req_id))
-                req_id += 1
-    else:
-        # Static URL
-        url = config['target_url']
-        for i in range(config['concurrency']):
-            tasks.append(send_request(session, url, config['method'], config['payload'], base_headers, i+1))
+    # Static URL
+    url = config['target_url']
+    for i in range(config['concurrency']):
+        tasks.append(send_request(session, url, config['method'], config['payload'], base_headers, i+1))
 
     # 3. Execution
     start = time.perf_counter()
