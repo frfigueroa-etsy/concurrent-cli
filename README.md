@@ -112,13 +112,53 @@ Sends all the specified concurrency amount of request at the same time.
     ```
 
 ## Usage
+
+### Simple CLI (`main.py`)
 To run a load test, provide the name of the configuration file (without .json extension) located in the `config/` folder.
 
 ```bash
     python main.py --endpoint getShopReceipts
 ```
 
-## Reporting
+### Locust
+Use Locust for high-concurrency testing, real-time graphs, and A/B testing scenarios.
+
+1. Select Target Endpoint
+
+You must specify which JSON config file to use via an environment variable.
+```bash
+    export TARGET_ENDPOINT=getShopReceipts
+```
+2. Run Modes
+
+__Option A:__ Web Interface (Real-time Graphs)
+Run the command and open http://localhost:8089 in your browser.
+```bash
+    locust
+```
+__Option B:__ Headless (CI/CD or Max Performance)
+Run directly in terminal without UI.
+
+```bash
+    locust --headless -u 100 -r 10 --run-time 5m --host [https://openapi.etsy.com](https://openapi.etsy.com)
+```
+
+__Parameters:__
+
+- __-u:__ Total concurrent users (e.g., 100).
+
+- __-r:__ Spawn rate (users starting per second).
+
+- __--run-time:__ How long the test should run.
+
+- __--host:__ Required by Locust (can be the base API URL).
+
+A/B Testing Support
+
+If your JSON file contains a list of multiple scenarios, Locust will automatically distribute the traffic randomly between them, allowing you to compare performance (e.g., Short Date Range vs Long Date Range).
+
+
+## Reporting (`main.py`)
 Results are logged to the console and saved to data/load_test_results.csv
 ### CSV Columns:
 - Timestamp: Date and time of the batch execution.

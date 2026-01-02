@@ -1,9 +1,9 @@
 [
   {
-    "name": "Heavy Load",
+    "name": "No MIN",
     "concurrency": 100,
     "duration_minutes": 3,
-    "interval_seconds": 45,
+    "interval_seconds": 0.1,
     "mode": "interval",
     "target_url": "https://openapi.etsy.com/v3/application/shops/6615110/receipts?limit=100",
     "method": "GET",
@@ -11,5 +11,19 @@
     "headers": {
       "Content-Type": "application/json"
     }
+  },
+  {
+    "name": "with MIN",
+    "concurrency": 100,
+    "duration_minutes": 3,
+    "interval_seconds": 0.1,
+    "mode": "interval",
+    "target_url": "https://openapi.etsy.com/v3/application/shops/6615110/receipts?limit=100&min_last_modified=1606799172",
+    "method": "GET",
+    "payload": {},
+    "headers": {
+      "Content-Type": "application/json"
+    }
   }
 ]
+
