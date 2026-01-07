@@ -40,9 +40,8 @@ concurrent-cli/
    ```bash
    cd concurrent-cli
 
-2. Create a Virtual Environment:
+2. Run the Virtual Environment:
    ```bash
-   python3 -m venv venv
    source venv/bin/activate
 
 3. Install Dependencies:
@@ -60,7 +59,7 @@ concurrent-cli/
    ```bash
     python auth/setup_auth.py
 
-3. A browser window will open. Log in to Etsy and authorize the app
+3. A browser window will open. Log in to Etsy and authorize the app  [(Test accounts here)](https://docs.google.com/document/d/1GeENcXcSy4xzaRC5HqNC0ZpUJ__R4kAmYC9C73ZnyIg/edit?tab=t.0#heading=h.5mqbraho33k0)
 4. Upon success, the script will automatically save `ETSY_ACCESS_TOKEN` and `ETSY_REFRESH_TOKEN` to your `.env` file
 
 
