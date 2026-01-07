@@ -63,7 +63,29 @@ concurrent-cli/
 3. A browser window will open. Log in to Etsy and authorize the app
 4. Upon success, the script will automatically save `ETSY_ACCESS_TOKEN` and `ETSY_REFRESH_TOKEN` to your `.env` file
 
-## Modes
+
+
+## Usage
+
+Before running any script you need to start the virtual environment with 
+```bash
+    source venv/bin/activate  
+```
+to 
+If you want to exit this environment you can type
+```bash
+    disconnect 
+```
+
+
+
+### Simple CLI (`main.py`)
+To run a load test, provide the name of the configuration file (without .json extension) located in the `config/` folder.
+
+```bash
+    python main.py --endpoint getShopReceipts
+```
+### Modes (`main.py`)
 
 ### Interval Mode (Recommended for Soak Testing)
 
@@ -110,16 +132,6 @@ Sends all the specified concurrency amount of request at the same time.
         }
     }
     ```
-
-## Usage
-
-### Simple CLI (`main.py`)
-To run a load test, provide the name of the configuration file (without .json extension) located in the `config/` folder.
-
-```bash
-    python main.py --endpoint getShopReceipts
-```
-
 ### Locust
 Use Locust for high-concurrency testing, real-time graphs, and A/B testing scenarios.
 
