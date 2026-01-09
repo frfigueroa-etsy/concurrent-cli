@@ -73,7 +73,7 @@ Before running any script you need to start the virtual environment with
 to 
 If you want to exit this environment you can type
 ```bash
-    disconnect 
+    deactivate 
 ```
 
 
